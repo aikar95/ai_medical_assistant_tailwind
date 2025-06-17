@@ -1,0 +1,64 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2639
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 import \{ useState \} from 'react';\
+\
+export default function ChatInterface() \{\
+  const [messages, setMessages] = useState([]);\
+  const [input, setInput] = useState('');\
+  const [loading, setLoading] = useState(false);\
+\
+  const sendMessage = async () => \{\
+    if (!input.trim()) return;\
+\
+    const newMessages = [...messages, \{ role: 'user', content: input \}];\
+    setMessages(newMessages);\
+    setInput('');\
+    setLoading(true);\
+\
+    const res = await fetch('/api/medassist', \{\
+      method: 'POST',\
+      headers: \{ 'Content-Type': 'application/json' \},\
+      body: JSON.stringify(\{ messages: newMessages \}),\
+    \});\
+\
+    const data = await res.json();\
+    setMessages([...newMessages, \{ role: 'assistant', content: data.reply \}]);\
+    setLoading(false);\
+  \};\
+\
+  return (\
+    <div className="flex flex-col max-w-2xl mx-auto h-screen p-4">\
+      <div className="flex-1 overflow-y-auto space-y-2">\
+        \{messages.map((msg, idx) => (\
+          <div\
+            key=\{idx\}\
+            className=\{`p-3 rounded-xl max-w-[80%] $\{\
+              msg.role === 'user' ? 'bg-blue-100 self-end' : 'bg-gray-100 self-start'\
+            \}`\}\
+          >\
+            \{msg.content\}\
+          </div>\
+        ))\}\
+        \{loading && <div className="text-sm text-gray-500">MedAssist is thinking...</div>\}\
+      </div>\
+      <div className="flex gap-2 mt-4">\
+        <input\
+          value=\{input\}\
+          onChange=\{(e) => setInput(e.target.value)\}\
+          onKeyDown=\{(e) => e.key === 'Enter' && sendMessage()\}\
+          className="flex-1 border border-gray-300 rounded-xl px-4 py-2"\
+          placeholder="Describe your symptoms..."\
+        />\
+        <button onClick=\{sendMessage\} className="bg-blue-500 text-white rounded-xl px-4 py-2">\
+          Send\
+        </button>\
+      </div>\
+    </div>\
+  );\
+\}\
+}
